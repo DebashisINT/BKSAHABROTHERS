@@ -1,0 +1,8 @@
+package com.bksahabrothersfsm.features.viewAllOrder.interf
+
+import com.bksahabrothersfsm.features.viewAllOrder.model.ProductOrder
+
+interface EmptyProductOnClick {
+    fun emptyProductOnCLick(emptyFound:Boolean)
+    fun delProductOnCLick(isDel:Boolean)
+}

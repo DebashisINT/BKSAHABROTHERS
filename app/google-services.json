@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "972312159396",
+    "project_id": "bksaha-brothers-fsm",
+    "storage_bucket": "bksaha-brothers-fsm.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:972312159396:android:eff9ff0acf33e0bf243231",
+        "android_client_info": {
+          "package_name": "com.bksahabrothersfsm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "972312159396-9c4etmi75mrmi7bn5v3bskmihfkcgkep.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVLbPHnyiXZdXl_5XFCcIm3pVj2hj1Ylk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "972312159396-9c4etmi75mrmi7bn5v3bskmihfkcgkep.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
