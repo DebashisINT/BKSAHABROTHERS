@@ -11,6 +11,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.*
@@ -26,7 +27,6 @@ import com.bksahabrothersfsm.app.Pref
 import com.bksahabrothersfsm.app.uiaction.DisplayAlert
 import com.bksahabrothersfsm.app.utils.AppUtils
 import com.bksahabrothersfsm.app.utils.FileLoggingTree
-import com.bksahabrothersfsm.app.utils.FileLoggingTree.fileDelete
 import com.bksahabrothersfsm.app.utils.PermissionUtils
 import com.bksahabrothersfsm.app.utils.Toaster
 import com.bksahabrothersfsm.base.presentation.BaseActivity
@@ -36,6 +36,8 @@ import com.bksahabrothersfsm.features.commondialog.presentation.CommonDialogClic
 import com.bksahabrothersfsm.features.commondialogsinglebtn.CommonDialogSingleBtn
 import com.bksahabrothersfsm.features.commondialogsinglebtn.OnDialogClickListener
 import com.bksahabrothersfsm.features.dashboard.presentation.DashboardActivity
+import com.bksahabrothersfsm.features.location.LocationWizard
+import com.bksahabrothersfsm.features.location.SingleShotLocationProvider
 import com.bksahabrothersfsm.features.login.presentation.LoginActivity
 import com.bksahabrothersfsm.features.splash.presentation.api.VersionCheckingRepoProvider
 import com.bksahabrothersfsm.features.splash.presentation.model.VersionCheckingReponseModel
@@ -59,6 +61,7 @@ import kotlin.system.exitProcess
  */
 // Revision History
 // 1.0 SplashActivity AppV 4.0.7 Saheli    02/03/2023 Timber Log Implementation
+// 2.0 SplashActivity AppV 4.0.7 Suman    21/03/2023 Location rectification for previous location 25760
 class SplashActivity : BaseActivity(), GpsStatusDetector.GpsStatusDetectorCallBack {
 
     private var isLoginLoaded: Boolean = false
@@ -116,6 +119,7 @@ class SplashActivity : BaseActivity(), GpsStatusDetector.GpsStatusDetectorCallBa
     email.putExtra(Intent.EXTRA_TEXT, "msg")
     //email.type = "message/rfc822"
     startActivity(Intent.createChooser(email, "Send mail..."))*/
+
 
     val receiver = ComponentName(this, AlarmBootReceiver::class.java)
         packageManager.setComponentEnabledSetting(receiver, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
@@ -506,7 +510,7 @@ class SplashActivity : BaseActivity(), GpsStatusDetector.GpsStatusDetectorCallBa
                 //startActivity(intent)
                 Pref.AutostartPermissionStatus = true
                 startActivityForResult(intent,401)
-            }else{
+            }else{7u
                 goTONextActi()
             }
         } catch (e: java.lang.Exception) {
@@ -532,9 +536,41 @@ class SplashActivity : BaseActivity(), GpsStatusDetector.GpsStatusDetectorCallBa
         if (TextUtils.isEmpty(Pref.user_id) || Pref.user_id.isNullOrBlank()) {
             if (!isLoginLoaded) {
                 isLoginLoaded = true
-                startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
-                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-                finish()
+
+                // 2.0 SplashActivity AppV 4.0.7 Suman    21/03/2023 Location rectification for previous location 25760
+                progress_wheel.spin()
+                try{
+                    SingleShotLocationProvider.requestSingleUpdate(this,
+                        object : SingleShotLocationProvider.LocationCallback {
+                            override fun onStatusChanged(status: String) {
+                            }
+
+                            override fun onProviderEnabled(status: String) {
+                            }
+
+                            override fun onProviderDisabled(status: String) {
+                            }
+
+                            override fun onNewLocationAvailable(location: Location) {
+                                Pref.latitude = location.latitude.toString()
+                                Pref.longitude = location.longitude.toString()
+                                Timber.d("Splash onNewLocationAvailable ${Pref.latitude} ${Pref.longitude}")
+                                progress_wheel.stopSpinning()
+
+                                startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
+                                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                                finish()
+                            }
+                        })
+                }
+                catch (ex:Exception){
+                    ex.printStackTrace()
+                    Timber.d("Splash onNewLocationAvailable ex ${ex.message}")
+                    progress_wheel.stopSpinning()
+                    startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
+                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                    finish()
+                }
             }
 
         } else {

@@ -145,6 +145,13 @@ import java.util.*
 // 7.0 DashboardFragment AppV 4.0.6  Saheli    25/01/2023  mantis 25623
 // 8.0 DashboardFragment  AppV 4.0.6 Saheli    01/02/2023  mantis 25637
 // 9.0 DashboardFragment  AppV 4.0.7 Saheli    15/02/2023  mantis 0025673  screen recoreder gradle & finction update
+// 10.0  DashboardFragment AppV 4.0.8 Saheli    06/04/2023  IsAssignedDDAvailableForAllUser Useds LoginActivity If this feature 'On' then Assigned DD [Assigned DD Table] shall be available in 'Shop Master' work 0025780 mantis
+// 11.0  DashboardFragment AppV 4.0.8 Saheli    20/04/2023  25860
+// Rev 12.0 DashboardFragment AppV 4.0.8 Suman    24/04/2023 Beat api fetch updation 0025898
+// 12.0  dashboardFrag AppV 4.0.8 Saheli    08/05/2023  26023
+// 13.0  DashboardFragment AppV 4.0.8 Saheli    12/05/2023 0026101
+// 14.0  DashboardFragment AppV 4.0.8 Suman    19/05/2023 26163
+
 class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListener, View.OnTouchListener {
 
     var dX = 0f
@@ -395,6 +402,13 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
 
                 shopActivityEntity.agency_name=date_list[i].shop_list!![j].agency_name
                 shopActivityEntity.pros_id=date_list[i].shop_list!![j].pros_id
+
+                try{
+                    shopActivityEntity.distFromProfileAddrKms = date_list[i].shop_list!![j].distFromProfileAddrKms.toString()
+                    shopActivityEntity.stationCode = date_list[i].shop_list!![j].stationCode.toString()
+                }catch (ex:Exception){
+                    ex.printStackTrace()
+                }
 
                 AppDatabase.getDBInstance()!!.shopActivityDao().insertAll(shopActivityEntity)
             }
@@ -2847,7 +2861,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     }
 
     private fun callMemberShopListApi() {
-
+        Timber.d("PJP api callMemberShopListApi DashFrag call")
         val repository = TeamRepoProvider.teamRepoProvider()
         BaseActivity.compositeDisposable.add(
                 repository.offlineTeamShopList("")
@@ -2963,9 +2977,10 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         getProductRateListApi()
     }
 
+
     private fun getProductRateListApi() {
         if(Pref.isOrderShow){
-            Timber.d("API_Optimization getProductRateListApi Login : enable " +  "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name )
+            Timber.d("api_call_dash  getProductRateListApi()")
             val repository = ProductListRepoProvider.productListProvider()
             progress_wheel.spin()
             BaseActivity.compositeDisposable.add(
@@ -3010,46 +3025,55 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     }
 
     private fun getBeatListApi() {
-        val repository = TypeListRepoProvider.provideTypeListRepository()
-        progress_wheel.spin()
-        BaseActivity.compositeDisposable.add(
-            repository.beatList()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe({ result ->
-                    val response = result as BeatListResponseModel
-                    if (response.status == NetworkConstant.SUCCESS) {
-                        val list = response.beat_list
-                        if (list != null && list.isNotEmpty()) {
-                            doAsync {
-                                AppDatabase.getDBInstance()?.beatDao()?.delete()
-                                list.forEach {
-                                    val beat = BeatEntity()
-                                    AppDatabase.getDBInstance()?.beatDao()?.insert(beat.apply {
-                                        beat_id = it.id
-                                        name = it.name
-                                    })
+        // Begin Rev 12.0 DashboardFragment AppV 4.0.8 Suman    24/04/2023 Beat api fetch updation 0025898
+        if(Pref.IsBeatAvailable){
+        //if(Pref.isShowBeatGroup){
+            // End of Rev 12.0 DashboardFragment AppV 4.0.8 Suman    24/04/2023 Beat api fetch updation 0025898
+            Timber.d("api_call_dash  beatList()")
+            val repository = TypeListRepoProvider.provideTypeListRepository()
+            progress_wheel.spin()
+            BaseActivity.compositeDisposable.add(
+                repository.beatList()
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({ result ->
+                        val response = result as BeatListResponseModel
+                        if (response.status == NetworkConstant.SUCCESS) {
+                            val list = response.beat_list
+                            if (list != null && list.isNotEmpty()) {
+                                doAsync {
+                                    AppDatabase.getDBInstance()?.beatDao()?.delete()
+                                    list.forEach {
+                                        val beat = BeatEntity()
+                                        AppDatabase.getDBInstance()?.beatDao()?.insert(beat.apply {
+                                            beat_id = it.id
+                                            name = it.name
+                                        })
+                                    }
+                                    uiThread {
+                                        progress_wheel.stopSpinning()
+                                        callUserConfigApi()
+                                    }
                                 }
-                                uiThread {
-                                    progress_wheel.stopSpinning()
-                                    callUserConfigApi()
-                                }
+                            } else {
+                                progress_wheel.stopSpinning()
+                                callUserConfigApi()
                             }
                         } else {
                             progress_wheel.stopSpinning()
                             callUserConfigApi()
                         }
-                    } else {
-                        progress_wheel.stopSpinning()
-                        callUserConfigApi()
-                    }
 
-                }, { error ->
-                    progress_wheel.stopSpinning()
-                    error.printStackTrace()
-                    callUserConfigApi()
-                })
-        )
+                    }, { error ->
+                        progress_wheel.stopSpinning()
+                        error.printStackTrace()
+                        callUserConfigApi()
+                    })
+            )
+        }else{
+            callUserConfigApi()
+        }
+
     }
 
     private fun checkToCallAssignedDDListApi() {
@@ -3070,7 +3094,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             progress_wheel = progress_wheel_attendance
         else
             progress_wheel = this.progress_wheel
-
+        Timber.d("api_call_dash  assignToDDList()")
         progress_wheel?.spin()
         BaseActivity.compositeDisposable.add(
                 repository.assignToDDList(Pref.profile_state)
@@ -3159,6 +3183,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         else
             progress_wheel = this.progress_wheel
 
+        Timber.d("api_call_dash  assignToPPList()")
         progress_wheel?.spin()
         BaseActivity.compositeDisposable.add(
                 repository.assignToPPList(Pref.profile_state)
@@ -3210,6 +3235,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     private fun getAssignedToShopApi() {
         val repository = TypeListRepoProvider.provideTypeListRepository()
         progress_wheel.spin()
+        Timber.d("api_call_dash  assignToShopList()")
         BaseActivity.compositeDisposable.add(
                 repository.assignToShopList(Pref.profile_state)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -3269,7 +3295,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             progress_wheel = progress_wheel_attendance
         else
             progress_wheel = this.progress_wheel
-
+            Timber.d("api_call_dash  getProductList()")
         progress_wheel?.spin()
         BaseActivity.compositeDisposable.add(
                 //repository.getProductList(Pref.session_token!!, Pref.user_id!!, date!!)
@@ -3344,7 +3370,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             progress_wheel = progress_wheel_attendance
         else
             progress_wheel = this.progress_wheel
-
+        Timber.d("api_call_dash  routeList()")
         progress_wheel?.spin()
         BaseActivity.compositeDisposable.add(
                 repository.routeList()
@@ -3431,6 +3457,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         else
             progress_wheel = this.progress_wheel
 
+        Timber.d("api_call_dash  userConfig()")
         progress_wheel?.spin()
         BaseActivity.compositeDisposable.add(
                 repository.userConfig(Pref.user_id!!)
@@ -4467,17 +4494,35 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                                                     Pref.IsContactPersonRequiredinQuotation = response.getconfigure!![i].Value == "1"
                                                 }
                                             }
+                                            //end rev 3.0
                                             // 5.0 DashboardFragment  AppV 4.0.6  IsAllowShopStatusUpdate
                                             else if (response.getconfigure!![i].Key.equals("IsAllowShopStatusUpdate", ignoreCase = true)) {
                                                 if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
                                                     Pref.IsAllowShopStatusUpdate = response.getconfigure!![i].Value == "1"
                                                 }
                                             }
+                                            //end rev 5.0
                                             else if (response.getconfigure!![i].Key.equals("IsShowBeatInMenu", ignoreCase = true)) {
                                                 if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
                                                     Pref.IsShowBeatInMenu = response.getconfigure!![i].Value == "1"
                                                 }
                                             }
+
+                                            else if (response.getconfigure?.get(i)?.Key.equals("IsAssignedDDAvailableForAllUser", ignoreCase = true)) {//10.0 DashboradFrag  AppV 4.0.8 mantis 0025780
+                                                Pref.IsAssignedDDAvailableForAllUser = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.IsAssignedDDAvailableForAllUser = response.getconfigure?.get(i)?.Value == "1"
+                                                }
+                                            }
+                                            //end rev 10.0
+
+                                              else if (response.getconfigure?.get(i)?.Key.equals("IsShowEmployeePerformance", ignoreCase = true)) {//11.0 DashboradFrag  AppV 4.0.8 mantis 25860
+                                                Pref.IsShowEmployeePerformance = response.getconfigure!![i].Value == "1"
+                                                if (!TextUtils.isEmpty(response.getconfigure?.get(i)?.Value)) {
+                                                    Pref.IsShowEmployeePerformance = response.getconfigure?.get(i)?.Value == "1"
+                                                }
+                                            }
+                                            //end rev 11.0
                                         }
                                     }
                                 } catch (e: Exception) {
@@ -4505,6 +4550,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
         else
             progress_wheel = this.progress_wheel
 
+        Timber.d("api_call_dash  configFetch()")
         progress_wheel?.spin()
         BaseActivity.compositeDisposable.add(
                 repository.configFetch()
@@ -4813,7 +4859,54 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                                 if (configResponse.IsAllowZeroRateOrder != null)
                                     Pref.IsAllowZeroRateOrder = configResponse.IsAllowZeroRateOrder!!
 
+                                // 4.0 Pref  AppV 4.0.7 Suman    23/03/2023 ShowApproxDistanceInNearbyShopList Show approx distance in nearby + shopmaster  mantis 0025742
+                                if (configResponse.ShowApproxDistanceInNearbyShopList != null)
+                                    Pref.ShowApproxDistanceInNearbyShopList = configResponse.ShowApproxDistanceInNearbyShopList!!
+                                //10.0 dashboardFrag  AppV 4.0.8  mantis 0025780
+                                if (configResponse.IsAssignedDDAvailableForAllUser != null)
+                                    Pref.IsAssignedDDAvailableForAllUserGlobal = configResponse.IsAssignedDDAvailableForAllUser!!
+                                //11.0 dashboardFrag  AppV 4.0.8  mantis 25860
+                                if (configResponse.IsShowEmployeePerformance != null)
+                                    Pref.IsShowEmployeePerformanceGlobal = configResponse.IsShowEmployeePerformance!!
+                                // end rev 11.0
 
+                                // 12.0  dashboardFrag AppV 4.0.8 Saheli    08/05/2023  26023
+                                if (configResponse.IsTaskManagementAvailable != null)
+                                    Pref.IsTaskManagementAvailable = configResponse.IsTaskManagementAvailable!!
+                                // end rev 12.0
+
+                                if (configResponse.IsShowPrivacyPolicyInMenu != null)
+                                    Pref.IsShowPrivacyPolicyInMenu = configResponse.IsShowPrivacyPolicyInMenu!!
+
+                                if (configResponse.IsAttendanceCheckedforExpense != null)
+                                    Pref.IsAttendanceCheckedforExpense = configResponse.IsAttendanceCheckedforExpense!!
+                                if (configResponse.IsShowLocalinExpense != null)
+                                    Pref.IsShowLocalinExpense = configResponse.IsShowLocalinExpense!!
+                                if (configResponse.IsShowOutStationinExpense != null)
+                                    Pref.IsShowOutStationinExpense = configResponse.IsShowOutStationinExpense!!
+                                if (configResponse.IsSingleDayTAApplyRestriction != null)
+                                    Pref.IsSingleDayTAApplyRestriction = configResponse.IsSingleDayTAApplyRestriction!!
+                                if (configResponse.IsTAAttachment1Mandatory != null)
+                                    Pref.IsTAAttachment1Mandatory = configResponse.IsTAAttachment1Mandatory!!
+                                if (configResponse.IsTAAttachment2Mandatory != null)
+                                    Pref.IsTAAttachment2Mandatory = configResponse.IsTAAttachment2Mandatory!!
+                                if (configResponse.NameforConveyanceAttachment1 != null)
+                                    Pref.NameforConveyanceAttachment1 = configResponse.NameforConveyanceAttachment1!!
+                                if (configResponse.NameforConveyanceAttachment2 != null)
+                                    Pref.NameforConveyanceAttachment2 = configResponse.NameforConveyanceAttachment2!!
+
+                                // 13.0  dashboardFrag AppV 4.0.8 Saheli    12/05/2023  0026101
+                                if (configResponse.IsAttachmentAvailableForCurrentStock != null)
+                                    Pref.IsAttachmentAvailableForCurrentStock = configResponse.IsAttachmentAvailableForCurrentStock!!
+                                // end rev 13.0
+
+                                if (configResponse.IsShowReimbursementTypeInAttendance != null)
+                                    Pref.IsShowReimbursementTypeInAttendance = configResponse.IsShowReimbursementTypeInAttendance!!
+
+                                //Begin 14.0  DashboardFragment AppV 4.0.8 Suman    19/05/2023 26163
+                                if (configResponse.IsBeatPlanAvailable != null)
+                                    Pref.IsBeatPlanAvailable = configResponse.IsBeatPlanAvailable!!
+                                //End of 14.0  DashboardFragment AppV 4.0.8 Suman    19/05/2023 26163
                             }
                             BaseActivity.isApiInitiated = false
                             /*API_Optimization 02-03-2022*/
@@ -4857,7 +4950,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             progress_wheel = progress_wheel_attendance
         else
             progress_wheel = this.progress_wheel
-
+        Timber.d("api_call_dash  alarmConfig()")
         progress_wheel?.spin()
         BaseActivity.compositeDisposable.add(
                 repository.alarmConfig()
@@ -4913,7 +5006,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             progress_wheel = progress_wheel_attendance
         else
             progress_wheel = this.progress_wheel
-
+            Timber.d("api_call_dash  getUserPJPList()")
         progress_wheel?.spin()
         val repository = TeamRepoProvider.teamRepoProvider()
         BaseActivity.compositeDisposable.add(
@@ -4983,7 +5076,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                 progress_wheel = progress_wheel_attendance
             else
                 progress_wheel = this.progress_wheel
-
+            Timber.d("api_call_dash  teamAreaList()")
             progress_wheel?.spin()
             BaseActivity.compositeDisposable.add(
                     repository.teamAreaList()
@@ -5044,7 +5137,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
                 progress_wheel = progress_wheel_attendance
             else
                 progress_wheel = this.progress_wheel
-
+            Timber.d("api_call_dash  getTimeSheetDropdown()")
             progress_wheel?.spin()
             val repository = TimeSheetRepoProvider.timeSheetRepoProvider()
             BaseActivity.compositeDisposable.add(
@@ -5127,7 +5220,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             progress_wheel = progress_wheel_attendance
         else
             progress_wheel = this.progress_wheel
-
+        Timber.d("api_call_dash  timeSheetConfig()")
         progress_wheel?.spin()
         val repository = TimeSheetRepoProvider.timeSheetRepoProvider()
         BaseActivity.compositeDisposable.add(
@@ -5166,58 +5259,65 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     }
 
     private fun gePrimaryAppListApi() {
-        progress_wheel.spin()
-        val repository = ShopListRepositoryProvider.provideShopListRepository()
-        BaseActivity.compositeDisposable.add(
+        if(Pref.isCustomerFeatureEnable){
+            progress_wheel.spin()
+            Timber.d("api_call_dash  getPrimaryAppList()")
+            val repository = ShopListRepositoryProvider.provideShopListRepository()
+            BaseActivity.compositeDisposable.add(
                 repository.getPrimaryAppList()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeOn(Schedulers.io())
-                        .subscribe({ result ->
-                            val response = result as PrimaryAppListResponseModel
-                            Timber.d("GET PRIMARY APP DATA : " + "RESPONSE : " + response.status + "\n" + "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name + ",MESSAGE : " + response.message)
-                            if (response.status == NetworkConstant.SUCCESS) {
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({ result ->
+                        val response = result as PrimaryAppListResponseModel
+                        Timber.d("GET PRIMARY APP DATA : " + "RESPONSE : " + response.status + "\n" + "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name + ",MESSAGE : " + response.message)
+                        if (response.status == NetworkConstant.SUCCESS) {
 
-                                if (response.primary_application_list != null && response.primary_application_list!!.isNotEmpty()) {
+                            if (response.primary_application_list != null && response.primary_application_list!!.isNotEmpty()) {
 
-                                    AppDatabase.getDBInstance()?.primaryAppListDao()?.deleteAll()
+                                AppDatabase.getDBInstance()?.primaryAppListDao()?.deleteAll()
 
-                                    doAsync {
+                                doAsync {
 
-                                        response.primary_application_list?.forEach {
-                                            val primaryEntity = PrimaryAppEntity()
-                                            AppDatabase.getDBInstance()?.primaryAppListDao()?.insertAll(primaryEntity.apply {
-                                                primary_app_id = it.id
-                                                primary_app_name = it.name
-                                            })
-                                        }
-
-                                        uiThread {
-                                            progress_wheel.stopSpinning()
-                                            geSecondaryAppListApi()
-                                        }
+                                    response.primary_application_list?.forEach {
+                                        val primaryEntity = PrimaryAppEntity()
+                                        AppDatabase.getDBInstance()?.primaryAppListDao()?.insertAll(primaryEntity.apply {
+                                            primary_app_id = it.id
+                                            primary_app_name = it.name
+                                        })
                                     }
-                                } else {
-                                    progress_wheel.stopSpinning()
-                                    geSecondaryAppListApi()
+
+                                    uiThread {
+                                        progress_wheel.stopSpinning()
+                                        geSecondaryAppListApi()
+                                    }
                                 }
-
-
                             } else {
                                 progress_wheel.stopSpinning()
                                 geSecondaryAppListApi()
                             }
 
-                        }, { error ->
+
+                        } else {
                             progress_wheel.stopSpinning()
-                            Timber.d("GET PRIMARY APP DATA : " + "ERROR : " + "\n" + "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name + ",MESSAGE : " + error.localizedMessage)
-                            error.printStackTrace()
                             geSecondaryAppListApi()
-                        })
-        )
+                        }
+
+                    }, { error ->
+                        progress_wheel.stopSpinning()
+                        Timber.d("GET PRIMARY APP DATA : " + "ERROR : " + "\n" + "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name + ",MESSAGE : " + error.localizedMessage)
+                        error.printStackTrace()
+                        geSecondaryAppListApi()
+                    })
+            )
+        }else{
+            getEntityTypeListApi()
+        }
+
     }
 
     private fun geSecondaryAppListApi() {
         progress_wheel.spin()
+        Timber.d("api_call_dash  getSecondaryAppList()")
         val repository = ShopListRepositoryProvider.provideShopListRepository()
         BaseActivity.compositeDisposable.add(
                 repository.getSecondaryAppList()
@@ -5269,6 +5369,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
 
     private fun geLeadApi() {
         progress_wheel.spin()
+        Timber.d("api_call_dash  getLeadTypeList()")
         val repository = ShopListRepositoryProvider.provideShopListRepository()
         BaseActivity.compositeDisposable.add(
                 repository.getLeadTypeList()
@@ -5320,6 +5421,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
 
     private fun geStageApi() {
         progress_wheel.spin()
+        Timber.d("api_call_dash  getStagList()")
         val repository = ShopListRepositoryProvider.provideShopListRepository()
         BaseActivity.compositeDisposable.add(
                 repository.getStagList()
@@ -5371,6 +5473,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
 
     private fun geFunnelStageApi() {
         progress_wheel.spin()
+        Timber.d("api_call_dash  getFunnelStageList()")
         val repository = ShopListRepositoryProvider.provideShopListRepository()
         BaseActivity.compositeDisposable.add(
                 repository.getFunnelStageList()
@@ -5421,146 +5524,165 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     }
 
     private fun getEntityTypeListApi() {
-        val repository = TypeListRepoProvider.provideTypeListRepository()
-        progress_wheel.spin()
-        BaseActivity.compositeDisposable.add(
+        if(Pref.willShowEntityTypeforShop){
+            val repository = TypeListRepoProvider.provideTypeListRepository()
+            progress_wheel.spin()
+            Timber.d("api_call_dash  entityList()")
+            BaseActivity.compositeDisposable.add(
                 repository.entityList()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeOn(Schedulers.io())
-                        .subscribe({ result ->
-                            val response = result as EntityResponseModel
-                            if (response.status == NetworkConstant.SUCCESS) {
-                                val list = response.entity_type
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({ result ->
+                        val response = result as EntityResponseModel
+                        if (response.status == NetworkConstant.SUCCESS) {
+                            val list = response.entity_type
 
-                                if (list != null && list.isNotEmpty()) {
-                                    AppDatabase.getDBInstance()?.entityDao()?.delete()
-                                    doAsync {
-                                        list.forEach {
-                                            val entity = EntityTypeEntity()
-                                            AppDatabase.getDBInstance()?.entityDao()?.insert(entity.apply {
-                                                entity_id = it.id
-                                                name = it.name
-                                            })
-                                        }
-
-                                        uiThread {
-                                            progress_wheel.stopSpinning()
-                                            getPartyStatusListApi()
-                                        }
+                            if (list != null && list.isNotEmpty()) {
+                                AppDatabase.getDBInstance()?.entityDao()?.delete()
+                                doAsync {
+                                    list.forEach {
+                                        val entity = EntityTypeEntity()
+                                        AppDatabase.getDBInstance()?.entityDao()?.insert(entity.apply {
+                                            entity_id = it.id
+                                            name = it.name
+                                        })
                                     }
-                                } else {
-                                    progress_wheel.stopSpinning()
-                                    getPartyStatusListApi()
+
+                                    uiThread {
+                                        progress_wheel.stopSpinning()
+                                        getPartyStatusListApi()
+                                    }
                                 }
                             } else {
                                 progress_wheel.stopSpinning()
                                 getPartyStatusListApi()
                             }
-
-                        }, { error ->
+                        } else {
                             progress_wheel.stopSpinning()
-                            error.printStackTrace()
                             getPartyStatusListApi()
-                        })
-        )
+                        }
+
+                    }, { error ->
+                        progress_wheel.stopSpinning()
+                        error.printStackTrace()
+                        getPartyStatusListApi()
+                    })
+            )
+        }else{
+            getPartyStatusListApi()
+        }
+
     }
 
     private fun getPartyStatusListApi() {
-        val repository = TypeListRepoProvider.provideTypeListRepository()
-        progress_wheel.spin()
-        BaseActivity.compositeDisposable.add(
+        if(Pref.willShowPartyStatus){
+            val repository = TypeListRepoProvider.provideTypeListRepository()
+            progress_wheel.spin()
+            Timber.d("api_call_dash  partyStatusList()")
+            BaseActivity.compositeDisposable.add(
                 repository.partyStatusList()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeOn(Schedulers.io())
-                        .subscribe({ result ->
-                            val response = result as PartyStatusResponseModel
-                            if (response.status == NetworkConstant.SUCCESS) {
-                                val list = response.party_status
-                                if (list != null && list.isNotEmpty()) {
-                                    AppDatabase.getDBInstance()?.partyStatusDao()?.delete()
-                                    doAsync {
-                                        list.forEach {
-                                            val party = PartyStatusEntity()
-                                            AppDatabase.getDBInstance()?.partyStatusDao()?.insert(party.apply {
-                                                party_status_id = it.id
-                                                name = it.name
-                                            })
-                                        }
-
-                                        uiThread {
-                                            progress_wheel.stopSpinning()
-                                            getMeetingTypeListApi()
-                                        }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({ result ->
+                        val response = result as PartyStatusResponseModel
+                        if (response.status == NetworkConstant.SUCCESS) {
+                            val list = response.party_status
+                            if (list != null && list.isNotEmpty()) {
+                                AppDatabase.getDBInstance()?.partyStatusDao()?.delete()
+                                doAsync {
+                                    list.forEach {
+                                        val party = PartyStatusEntity()
+                                        AppDatabase.getDBInstance()?.partyStatusDao()?.insert(party.apply {
+                                            party_status_id = it.id
+                                            name = it.name
+                                        })
                                     }
-                                } else {
-                                    progress_wheel.stopSpinning()
-                                    getMeetingTypeListApi()
+
+                                    uiThread {
+                                        progress_wheel.stopSpinning()
+                                        getMeetingTypeListApi()
+                                    }
                                 }
                             } else {
                                 progress_wheel.stopSpinning()
                                 getMeetingTypeListApi()
                             }
-
-                        }, { error ->
+                        } else {
                             progress_wheel.stopSpinning()
-                            error.printStackTrace()
                             getMeetingTypeListApi()
-                        })
-        )
+                        }
+
+                    }, { error ->
+                        progress_wheel.stopSpinning()
+                        error.printStackTrace()
+                        getMeetingTypeListApi()
+                    })
+            )
+        }else{
+            getMeetingTypeListApi()
+        }
+
     }
 
     private fun getMeetingTypeListApi() {
-        val repository = LoginRepositoryProvider.provideLoginRepository()
-        progress_wheel.spin()
-        BaseActivity.compositeDisposable.add(
+        if(Pref.isMeetingAvailable){
+            val repository = LoginRepositoryProvider.provideLoginRepository()
+            progress_wheel.spin()
+            Timber.d("api_call_dash  getMeetingList()")
+            BaseActivity.compositeDisposable.add(
                 repository.getMeetingList()
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeOn(Schedulers.io())
-                        .subscribe({ result ->
-                            val response = result as MeetingListResponseModel
-                            BaseActivity.isApiInitiated = false
-                            if (response.status == NetworkConstant.SUCCESS) {
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({ result ->
+                        val response = result as MeetingListResponseModel
+                        BaseActivity.isApiInitiated = false
+                        if (response.status == NetworkConstant.SUCCESS) {
 
-                                if (response.meeting_type_list != null && response.meeting_type_list!!.size > 0) {
+                            if (response.meeting_type_list != null && response.meeting_type_list!!.size > 0) {
 
-                                    AppDatabase.getDBInstance()!!.addMeetingTypeDao().deleteAll()
+                                AppDatabase.getDBInstance()!!.addMeetingTypeDao().deleteAll()
 
-                                    doAsync {
-                                        val list = response.meeting_type_list
+                                doAsync {
+                                    val list = response.meeting_type_list
 
-                                        for (i in list!!.indices) {
-                                            val meetingType = MeetingTypeEntity()
-                                            meetingType.typeId = list[i].type_id.toInt()
-                                            meetingType.typeText = list[i].type_text
+                                    for (i in list!!.indices) {
+                                        val meetingType = MeetingTypeEntity()
+                                        meetingType.typeId = list[i].type_id.toInt()
+                                        meetingType.typeText = list[i].type_text
 
-                                            AppDatabase.getDBInstance()!!.addMeetingTypeDao().insertAll(meetingType)
-                                        }
-
-                                        uiThread {
-                                            progress_wheel.stopSpinning()
-                                            getRemarksList()
-                                        }
+                                        AppDatabase.getDBInstance()!!.addMeetingTypeDao().insertAll(meetingType)
                                     }
-                                } else {
-                                    progress_wheel.stopSpinning()
-                                    getRemarksList()
+
+                                    uiThread {
+                                        progress_wheel.stopSpinning()
+                                        getRemarksList()
+                                    }
                                 }
                             } else {
                                 progress_wheel.stopSpinning()
                                 getRemarksList()
                             }
-
-                        }, { error ->
-                            error.printStackTrace()
-                            BaseActivity.isApiInitiated = false
+                        } else {
                             progress_wheel.stopSpinning()
                             getRemarksList()
-                        })
-        )
+                        }
+
+                    }, { error ->
+                        error.printStackTrace()
+                        BaseActivity.isApiInitiated = false
+                        progress_wheel.stopSpinning()
+                        getRemarksList()
+                    })
+            )
+        }else{
+            getRemarksList()
+        }
+
     }
 
     private fun getRemarksList() {
         progress_wheel.spin()
+        Timber.d("api_call_dash  getRemarksList()")
         val repository = ShopDurationRepositoryProvider.provideShopDurationRepository()
         BaseActivity.compositeDisposable.add(
                 repository.getRemarksList()
@@ -5607,6 +5729,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
             Timber.d("API_Optimization GET getDocumentListApi dashboard : enable " + "Time : " + AppUtils.getCurrentDateTime() + ", USER :" + Pref.user_name)
             val repository = DocumentRepoProvider.documentRepoProvider()
             progress_wheel.spin()
+            Timber.d("api_call_dash  getDocType()")
             BaseActivity.compositeDisposable.add(
                     repository.getDocType()
                             .observeOn(AndroidSchedulers.mainThread())
@@ -5673,6 +5796,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
     private fun getDocumentListApi() {
         val repository = DocumentRepoProvider.documentRepoProvider()
         progress_wheel.spin()
+        Timber.d("api_call_dash  getDocList()")
         BaseActivity.compositeDisposable.add(
                 repository.getDocList("")
                         .observeOn(AndroidSchedulers.mainThread())
@@ -5741,6 +5865,7 @@ class DashboardFragment : BaseFragment(), View.OnClickListener, HBRecorderListen
 
     @SuppressLint("RestrictedApi")
     private fun changeUI() {
+        Timber.d("api_call_dash  changeUI()")
         tv_shop.text = Pref.shopText + "(s)"
 
         if (Pref.willShowUpdateDayPlan)

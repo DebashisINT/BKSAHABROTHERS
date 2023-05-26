@@ -77,6 +77,7 @@ import java.util.*
 // 1.0 NewOrderListFragment AppV 4.0.6 saheli 12-01-2023 multiple contact Data added on Api called
 // 2.0 NewOrderListFragment AppV 4.0.6 saheli 20-01-2023 Pdf module updation mantis 25595
 // 3.0 NewOrderListFragment AppV 4.0.6 saheli 20-01-2023  mantis 25601
+// 4.0 NewOrderListFragment AppV 4.1.3 Suman 05-05-2023 attachement for IsCollectionOrderWise opened dialog mantis 26037
 class NewOrderListFragment : BaseFragment() {
 
     private lateinit var mContext: Context
@@ -119,13 +120,16 @@ class NewOrderListFragment : BaseFragment() {
             no_shop_tv.visibility = View.GONE
 
             val list_ = AppDatabase.getDBInstance()!!.billingDao().getAll()
-            if (list_ == null || list_.isEmpty())
+            if (list_ == null || list_.isEmpty()) {
                 getBillListApi(list)
-            else
+                }
+            else {
                 initAdapter(list)
+                }
 
-        } else
+        } else {
             getOrderList(true)
+            }
     }
 
     private fun getBillListApi(list: ArrayList<OrderDetailsListEntity>) {
@@ -308,11 +312,13 @@ class NewOrderListFragment : BaseFragment() {
                                             no_shop_tv.visibility = View.GONE
                                             //initAdapter(AppDatabase.getDBInstance()!!.orderDetailsListDao().getAll() as ArrayList<OrderDetailsListEntity>)
                                             val list_ = AppDatabase.getDBInstance()!!.billingDao().getAll()
-                                            if (list_ == null || list_.isEmpty())
+                                            if (list_ == null || list_.isEmpty()) {
                                                 getBillListApi(AppDatabase.getDBInstance()!!.orderDetailsListDao().getAll() as ArrayList<OrderDetailsListEntity>)
-                                            else
-                                                initAdapter(AppDatabase.getDBInstance()!!.orderDetailsListDao().getAll() as ArrayList<OrderDetailsListEntity>)
-
+                                                        }
+                                            else {
+                                                initAdapter(
+                                                    AppDatabase.getDBInstance()!!.orderDetailsListDao().getAll() as ArrayList<OrderDetailsListEntity>)
+                                            }
                                             if (!isFromInitView)
                                                 (mContext as DashboardActivity).showSnackMessage(getString(R.string.success_msg), 1000)
                                         }
@@ -320,28 +326,35 @@ class NewOrderListFragment : BaseFragment() {
                                 } else {
                                     progress_wheel.stopSpinning()
 
-                                    if (isFromInitView)
+                                    if (isFromInitView){
                                         no_shop_tv.visibility = View.VISIBLE
-                                    else
+                                    }
+                                    else {
                                         (mContext as DashboardActivity).showSnackMessage(getString(R.string.error_msg), 1000)
-                                }
+                                    }
+                                    }
                             } else {
                                 progress_wheel.stopSpinning()
 
-                                if (isFromInitView)
+                                if (isFromInitView) {
                                     no_shop_tv.visibility = View.VISIBLE
+                                }
                                 else
+                                {
                                     (mContext as DashboardActivity).showSnackMessage(getString(R.string.error_msg), 1000)
+                                }
                             }
 
                         }, { error ->
                             error.printStackTrace()
                             progress_wheel.stopSpinning()
 
-                            if (isFromInitView)
+                            if (isFromInitView) {
                                 no_shop_tv.visibility = View.VISIBLE
-                            else
+                                }
+                            else {
                                 (mContext as DashboardActivity).showSnackMessage(getString(R.string.error_msg), 1000)
+                                    }
                         })
         )
     }
@@ -633,10 +646,12 @@ class NewOrderListFragment : BaseFragment() {
                 e.printStackTrace()
             }
         }, {
-            if (!TextUtils.isEmpty(it.order_lat) && !TextUtils.isEmpty(it.order_long))
+            if (!TextUtils.isEmpty(it.order_lat) && !TextUtils.isEmpty(it.order_long)) {
                 (mContext as DashboardActivity).openLocationMap(it, false)
-            else
+                }
+            else{
                 (mContext as DashboardActivity).showSnackMessage("No order location available")
+                }
         }, {
             var pdfBody = "Order No.: " + it.order_id + "\n\nOrder Date: " + AppUtils.convertDateTimeToCommonFormat(it.date!!) +
                     "\n\nParty Name: "
@@ -1165,62 +1180,81 @@ class NewOrderListFragment : BaseFragment() {
         addOrder.latitude = order.order_lat
         addOrder.longitude = order.order_long
 
-        if (order.scheme_amount != null)
+        if (order.scheme_amount != null) {
             addOrder.scheme_amount = order.scheme_amount
-        else
+            }
+        else {
             addOrder.scheme_amount = ""
+            }
 
-        if (order.remarks != null)
+        if (order.remarks != null) {
             addOrder.remarks = order.remarks
-        else
+            }
+        else {
             addOrder.remarks = ""
+            }
 
-        if (order.patient_name != null)
+        if (order.patient_name != null) {
             addOrder.patient_name = order.patient_name
-        else
+            }
+        else {
             addOrder.patient_name = ""
+            }
 
-        if (order.patient_address != null)
+        if (order.patient_address != null) {
             addOrder.patient_address = order.patient_address
-        else
+            }
+        else {
             addOrder.patient_address = ""
-
-        if (order.patient_no != null)
+        }
+        if (order.patient_no != null) {
             addOrder.patient_no = order.patient_no
-        else
+            }
+        else {
             addOrder.patient_no = ""
+        }
 
         val shopActivity = AppDatabase.getDBInstance()!!.shopActivityDao().getShopActivityForId(shop_id!!)
         if (shopActivity != null) {
             if (shopActivity.isVisited && !shopActivity.isDurationCalculated && shopActivity.date == AppUtils.getCurrentDateForShopActi()) {
                 val shopDetail = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shop_id)
 
-                if (!TextUtils.isEmpty(shopDetail.address))
+                if (!TextUtils.isEmpty(shopDetail.address)) {
                     addOrder.address = shopDetail.address
-                else
+                    }
+                else {
                     addOrder.address = ""
+                    }
             } else {
-                if (!TextUtils.isEmpty(order.order_lat) && !TextUtils.isEmpty(order.order_long))
+                if (!TextUtils.isEmpty(order.order_lat) && !TextUtils.isEmpty(order.order_long)) {
                     addOrder.address = LocationWizard.getLocationName(mContext, order.order_lat!!.toDouble(), order.order_long!!.toDouble())
-                else
+                }
+                else {
                     addOrder.address = ""
+                    }
             }
         } else {
-            if (!TextUtils.isEmpty(order.order_lat) && !TextUtils.isEmpty(order.order_long))
+            if (!TextUtils.isEmpty(order.order_lat) && !TextUtils.isEmpty(order.order_long)) {
                 addOrder.address = LocationWizard.getLocationName(mContext, order.order_lat!!.toDouble(), order.order_long!!.toDouble())
-            else
+            }
+            else {
                 addOrder.address = ""
+                }
         }
         /*06-01-2022*/
-        if (order.Hospital != null)
+        if (order.Hospital != null) {
             addOrder.Hospital = order.Hospital
-        else
+            }
+        else {
             addOrder.Hospital = ""
+            }
 
-        if (order.Email_Address != null)
+        if (order.Email_Address != null) {
             addOrder.Email_Address = order.Email_Address
-        else
+            }
+        else {
             addOrder.Email_Address = ""
+            }
         val list = AppDatabase.getDBInstance()!!.orderProductListDao().getDataAccordingToShopAndOrderId(order.order_id!!, shop_id!!)
         val productList = java.util.ArrayList<AddOrderInputProductList>()
 
@@ -1265,8 +1299,9 @@ class NewOrderListFragment : BaseFragment() {
                                     addCollectionApi(shop_id, collection_id, amount, desc, collection, currentDateForShopActi,
                                             billId, orderId, collectionDetails)
 
-                                } else
+                                } else {
                                     (mContext as DashboardActivity).showSnackMessage("Collection added successfully")
+                                    }
 
                             }, { error ->
                                 error.printStackTrace()
@@ -1293,8 +1328,9 @@ class NewOrderListFragment : BaseFragment() {
                                     addCollectionApi(shop_id, collection_id, amount, desc, collection, currentDateForShopActi,
                                             billId, orderId, collectionDetails)
 
-                                } else
+                                } else {
                                     (mContext as DashboardActivity).showSnackMessage("Collection added successfully")
+                                }
 
                             }, { error ->
                                 error.printStackTrace()
@@ -1632,15 +1668,19 @@ class NewOrderListFragment : BaseFragment() {
         addCollection.user_id = Pref.user_id
         addCollection.shop_id = shop_id
 
-        if (!TextUtils.isEmpty(billId))
+        if (!TextUtils.isEmpty(billId)) {
             addCollection.bill_id = billId!!
-        else
+        }
+        else {
             addCollection.bill_id = ""
+            }
 
-        if (!TextUtils.isEmpty(orderId))
+        if (!TextUtils.isEmpty(orderId)) {
             addCollection.order_id = orderId!!
-        else
+            }
+        else {
             addCollection.order_id = ""
+            }
 
         addCollection.payment_id = collectionDetails.payment_id!!
 
@@ -1771,25 +1811,33 @@ class NewOrderListFragment : BaseFragment() {
         addOrder.latitude = order_lat
         addOrder.longitude = order_long
 
-        if (remarks != null)
+        if (remarks != null) {
             addOrder.remarks = remarks
-        else
+        }
+        else {
             addOrder.remarks = ""
+            }
 
-        if (orderListDetails.patient_name != null)
+        if (orderListDetails.patient_name != null) {
             addOrder.patient_name = orderListDetails.patient_name
-        else
+            }
+        else {
             addOrder.patient_name = ""
+            }
 
-        if (orderListDetails.patient_address != null)
+        if (orderListDetails.patient_address != null) {
             addOrder.patient_address = orderListDetails.patient_address
-        else
+            }
+        else {
             addOrder.patient_address = ""
+            }
 
-        if (orderListDetails.patient_no != null)
+        if (orderListDetails.patient_no != null) {
             addOrder.patient_no = orderListDetails.patient_no
-        else
+            }
+        else {
             addOrder.patient_no = ""
+            }
 
         val shopActivity = AppDatabase.getDBInstance()!!.shopActivityDao().getShopActivityForId(shop_id!!)
 
@@ -1797,33 +1845,43 @@ class NewOrderListFragment : BaseFragment() {
             if (shopActivity.isVisited && !shopActivity.isDurationCalculated && shopActivity.date == AppUtils.getCurrentDateForShopActi()) {
                 val shopDetail = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(shop_id)
 
-                if (!TextUtils.isEmpty(shopDetail.address))
+                if (!TextUtils.isEmpty(shopDetail.address)) {
                     addOrder.address = shopDetail.address
-                else
+                }
+                else {
                     addOrder.address = ""
+                }
             } else {
-                if (!TextUtils.isEmpty(order_lat) && !TextUtils.isEmpty(order_long))
+                if (!TextUtils.isEmpty(order_lat) && !TextUtils.isEmpty(order_long)) {
                     addOrder.address = LocationWizard.getLocationName(mContext, order_lat!!.toDouble(), order_long!!.toDouble())
-                else
+                }
+                else {
                     addOrder.address = ""
+                    }
             }
         } else {
-            if (!TextUtils.isEmpty(order_lat) && !TextUtils.isEmpty(order_long))
+            if (!TextUtils.isEmpty(order_lat) && !TextUtils.isEmpty(order_long)) {
                 addOrder.address = LocationWizard.getLocationName(mContext, order_lat!!.toDouble(), order_long!!.toDouble())
-            else
+            }
+            else {
                 addOrder.address = ""
+                }
         }
 
         /*06-01-2022*/
-        if (orderListDetails.Hospital != null)
+        if (orderListDetails.Hospital != null) {
             addOrder.Hospital = orderListDetails.Hospital
-        else
+        }
+        else {
             addOrder.Hospital = ""
+        }
 
-        if (orderListDetails.Email_Address != null)
+        if (orderListDetails.Email_Address != null) {
             addOrder.Email_Address = orderListDetails.Email_Address
-        else
+            }
+        else {
             addOrder.Email_Address = ""
+            }
 
         val list = AppDatabase.getDBInstance()!!.orderProductListDao().getDataAccordingToShopAndOrderId(order_id!!, shop_id!!)
         val productList = ArrayList<AddOrderInputProductList>()
@@ -1871,8 +1929,9 @@ class NewOrderListFragment : BaseFragment() {
 
                                     (mContext as DashboardActivity).showSnackMessage("Synced successfully")
                                     initAdapter(AppDatabase.getDBInstance()!!.orderDetailsListDao().getAll() as ArrayList<OrderDetailsListEntity>)
-                                } else
+                                } else {
                                     (mContext as DashboardActivity).showSnackMessage(getString(R.string.unable_sync_order))
+                                }
 
                             }, { error ->
                                 error.printStackTrace()
@@ -2254,19 +2313,23 @@ class NewOrderListFragment : BaseFragment() {
             if (sList != null && sList.isNotEmpty())
                 shopDurationData.total_visit_count = sList[0].totalVisitCount
 
-            if (!TextUtils.isEmpty(shopActivity.feedback))
+            if (!TextUtils.isEmpty(shopActivity.feedback)) {
                 shopDurationData.feedback = shopActivity.feedback
-            else
+            }
+            else {
                 shopDurationData.feedback = ""
+                }
 
             shopDurationData.isFirstShopVisited = shopActivity.isFirstShopVisited
             shopDurationData.distanceFromHomeLoc = shopActivity.distance_from_home_loc
             shopDurationData.next_visit_date = shopActivity.next_visit_date
 
-            if (!TextUtils.isEmpty(shopActivity.early_revisit_reason))
+            if (!TextUtils.isEmpty(shopActivity.early_revisit_reason)) {
                 shopDurationData.early_revisit_reason = shopActivity.early_revisit_reason
-            else
+                }
+            else {
                 shopDurationData.early_revisit_reason = ""
+                }
 
             shopDurationData.device_model = shopActivity.device_model
             shopDurationData.android_version = shopActivity.android_version
@@ -2289,20 +2352,27 @@ class NewOrderListFragment : BaseFragment() {
                 shopDurationData.updated_on = ""
             }
 
-            if (!TextUtils.isEmpty(shopActivity.pros_id!!))
+            if (!TextUtils.isEmpty(shopActivity.pros_id!!)) {
                 shopDurationData.pros_id = shopActivity.pros_id!!
-            else
+            }
+            else {
                 shopDurationData.pros_id = ""
+            }
 
-            if (!TextUtils.isEmpty(shopActivity.agency_name!!))
-                shopDurationData.agency_name =shopActivity.agency_name!!
-            else
+            if (!TextUtils.isEmpty(shopActivity.agency_name!!)) {
+                shopDurationData.agency_name = shopActivity.agency_name!!
+            }
+            else {
                 shopDurationData.agency_name = ""
+            }
 
-            if (!TextUtils.isEmpty(shopActivity.approximate_1st_billing_value))
-                shopDurationData.approximate_1st_billing_value = shopActivity.approximate_1st_billing_value!!
-            else
+            if (!TextUtils.isEmpty(shopActivity.approximate_1st_billing_value)) {
+                shopDurationData.approximate_1st_billing_value =
+                    shopActivity.approximate_1st_billing_value!!
+            }
+            else {
                 shopDurationData.approximate_1st_billing_value = ""
+                }
             //duration garbage fix
             try{
                 if(shopDurationData.spent_duration!!.contains("-") || shopDurationData.spent_duration!!.length != 8)
@@ -2351,10 +2421,12 @@ class NewOrderListFragment : BaseFragment() {
                 if (sList != null && sList.isNotEmpty())
                     shopDurationData.total_visit_count = sList[0].totalVisitCount
 
-                if (!TextUtils.isEmpty(shopActivity.feedback))
+                if (!TextUtils.isEmpty(shopActivity.feedback)) {
                     shopDurationData.feedback = shopActivity.feedback
-                else
+                }
+                else {
                     shopDurationData.feedback = ""
+                    }
 
                 shopDurationData.isFirstShopVisited = shopActivity.isFirstShopVisited
                 shopDurationData.distanceFromHomeLoc = shopActivity.distance_from_home_loc
@@ -2386,20 +2458,27 @@ class NewOrderListFragment : BaseFragment() {
                     shopDurationData.updated_on =""
                 }
 
-                if (!TextUtils.isEmpty(shopActivity.pros_id!!))
+                if (!TextUtils.isEmpty(shopActivity.pros_id!!)) {
                     shopDurationData.pros_id = shopActivity.pros_id!!
-                else
+                }
+                else {
                     shopDurationData.pros_id = ""
+                }
 
-                if (!TextUtils.isEmpty(shopActivity.agency_name!!))
-                    shopDurationData.agency_name =shopActivity.agency_name!!
-                else
+                if (!TextUtils.isEmpty(shopActivity.agency_name!!)) {
+                    shopDurationData.agency_name = shopActivity.agency_name!!
+                }
+                else {
                     shopDurationData.agency_name = ""
+                    }
 
-                if (!TextUtils.isEmpty(shopActivity.approximate_1st_billing_value))
-                    shopDurationData.approximate_1st_billing_value = shopActivity.approximate_1st_billing_value!!
-                else
+                if (!TextUtils.isEmpty(shopActivity.approximate_1st_billing_value)) {
+                    shopDurationData.approximate_1st_billing_value =
+                        shopActivity.approximate_1st_billing_value!!
+                }
+                else {
                     shopDurationData.approximate_1st_billing_value = ""
+                }
                 //duration garbage fix
                 try{
                     if(shopDurationData.spent_duration!!.contains("-") || shopDurationData.spent_duration!!.length != 8)
@@ -2654,8 +2733,9 @@ class NewOrderListFragment : BaseFragment() {
         if (list != null && list.isNotEmpty()) {
             no_shop_tv.visibility = View.GONE
             initAdapter(list)
-        } else
+        } else {
             no_shop_tv.visibility = View.VISIBLE
+        }
     }
 
     fun refreshOrderList() {
@@ -2674,10 +2754,12 @@ class NewOrderListFragment : BaseFragment() {
                 val shop = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(orderList[i].shop_id)
 
                 if (shop != null) {
-                    if (shop.isUploaded)
+                    if (shop.isUploaded) {
                         orderDetailsList.add(orderList[i])
-                    else
+                    }
+                    else {
                         shopList.add(shop)
+                    }
                 }
             }
 
@@ -2690,8 +2772,9 @@ class NewOrderListFragment : BaseFragment() {
             }
 
 
-        } else
+        } else {
             getOrderList(false)
+        }
 
     }
 
@@ -3033,63 +3116,82 @@ class NewOrderListFragment : BaseFragment() {
         addOrder.latitude = orderDetailsListEntity.order_lat
         addOrder.longitude = orderDetailsListEntity.order_long
 
-        if (orderDetailsListEntity.scheme_amount != null)
+        if (orderDetailsListEntity.scheme_amount != null) {
             addOrder.scheme_amount = orderDetailsListEntity.scheme_amount
-        else
+        }
+        else {
             addOrder.scheme_amount = ""
+            }
 
-        if (orderDetailsListEntity.remarks != null)
+        if (orderDetailsListEntity.remarks != null) {
             addOrder.remarks = orderDetailsListEntity.remarks
-        else
+        }
+        else {
             addOrder.remarks = ""
+        }
 
-        if (orderDetailsListEntity.patient_name != null)
+        if (orderDetailsListEntity.patient_name != null) {
             addOrder.patient_name = orderDetailsListEntity.patient_name
-        else
+            }
+        else {
             addOrder.patient_name = ""
+            }
 
-        if (orderDetailsListEntity.patient_address != null)
+        if (orderDetailsListEntity.patient_address != null) {
             addOrder.patient_address = orderDetailsListEntity.patient_address
-        else
+            }
+        else {
             addOrder.patient_address = ""
+        }
 
-        if (orderDetailsListEntity.patient_no != null)
+        if (orderDetailsListEntity.patient_no != null) {
             addOrder.patient_no = orderDetailsListEntity.patient_no
-        else
+        }
+        else {
             addOrder.patient_no = ""
+        }
 
         val shopActivity = AppDatabase.getDBInstance()!!.shopActivityDao().getShopActivityForId(orderDetailsListEntity.shop_id!!)
         if (shopActivity != null) {
             if (shopActivity.isVisited && !shopActivity.isDurationCalculated && shopActivity.date == AppUtils.getCurrentDateForShopActi()) {
                 val shopDetail = AppDatabase.getDBInstance()!!.addShopEntryDao().getShopByIdN(orderDetailsListEntity.shop_id)
 
-                if (!TextUtils.isEmpty(shopDetail.address))
+                if (!TextUtils.isEmpty(shopDetail.address)) {
                     addOrder.address = shopDetail.address
-                else
+                }
+                else {
                     addOrder.address = ""
+                }
             } else {
-                if (!TextUtils.isEmpty(orderDetailsListEntity.order_lat) && !TextUtils.isEmpty(orderDetailsListEntity.order_long))
+                if (!TextUtils.isEmpty(orderDetailsListEntity.order_lat) && !TextUtils.isEmpty(orderDetailsListEntity.order_long)) {
                     addOrder.address = LocationWizard.getLocationName(mContext, orderDetailsListEntity.order_lat!!.toDouble(), orderDetailsListEntity.order_long!!.toDouble())
-                else
+                }
+                    else {
                     addOrder.address = ""
+                }
             }
         } else {
-            if (!TextUtils.isEmpty(orderDetailsListEntity.order_lat) && !TextUtils.isEmpty(orderDetailsListEntity.order_long))
+            if (!TextUtils.isEmpty(orderDetailsListEntity.order_lat) && !TextUtils.isEmpty(orderDetailsListEntity.order_long)) {
                 addOrder.address = LocationWizard.getLocationName(mContext, orderDetailsListEntity.order_lat!!.toDouble(), orderDetailsListEntity.order_long!!.toDouble())
-            else
+            }
+                else {
                 addOrder.address = ""
+            }
         }
 
         /*06-01-2022*/
-        if (orderDetailsListEntity.Hospital != null)
+        if (orderDetailsListEntity.Hospital != null) {
             addOrder.Hospital = orderDetailsListEntity.Hospital
-        else
+            }
+        else {
             addOrder.Hospital = ""
-
-        if (orderDetailsListEntity.Email_Address != null)
+        }
+        if (orderDetailsListEntity.Email_Address != null) {
             addOrder.Email_Address = orderDetailsListEntity.Email_Address
-        else
+        }
+        else {
             addOrder.Email_Address = ""
+            }
 
         val list = AppDatabase.getDBInstance()!!.orderProductListDao().getDataAccordingToShopAndOrderId(orderDetailsListEntity.order_id!!, orderDetailsListEntity.shop_id!!)
         val productList = java.util.ArrayList<AddOrderInputProductList>()
@@ -3204,7 +3306,15 @@ class NewOrderListFragment : BaseFragment() {
     }
 
     fun setImage(file: File) {
-        collectionDialog?.setImage(file)
+        //collectionDialog?.setImage(file)
+
+        //Begin 4.0 NewOrderListFragment AppV 4.1.3 Suman 05-05-2023 attachement for IsCollectionOrderWise opened dialog mantis 26037
+        if(Pref.IsCollectionOrderWise){
+            collectionDialog1?.setImage(file)
+        }else{
+            collectionDialog?.setImage(file)
+        }
+        //End of 4.0 NewOrderListFragment AppV 4.1.3 Suman 05-05-2023 attachement for IsCollectionOrderWise opened dialog mantis 26037
     }
 
     /*private fun convertIntoWords(str: Double, language: String, Country: String): String? {

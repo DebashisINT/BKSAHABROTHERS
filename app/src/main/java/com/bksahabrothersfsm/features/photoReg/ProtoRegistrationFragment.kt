@@ -43,7 +43,10 @@ import com.bksahabrothersfsm.R
 import com.bksahabrothersfsm.app.*
 import com.bksahabrothersfsm.app.types.FragType
 import com.bksahabrothersfsm.app.uiaction.IntentActionable
-import com.bksahabrothersfsm.app.utils.*
+import com.bksahabrothersfsm.app.utils.AppUtils
+import com.bksahabrothersfsm.app.utils.FTStorageUtils
+import com.bksahabrothersfsm.app.utils.PermissionUtils
+import com.bksahabrothersfsm.app.utils.ProcessImageUtils_v1
 import com.bksahabrothersfsm.base.BaseResponse
 import com.bksahabrothersfsm.base.presentation.BaseActivity
 import com.bksahabrothersfsm.base.presentation.BaseFragment
@@ -60,13 +63,14 @@ import com.bksahabrothersfsm.widgets.AppCustomTextView
 import com.downloader.Error
 import com.downloader.OnDownloadListener
 import com.downloader.PRDownloader
-
 import com.squareup.picasso.*
 import com.squareup.picasso.Picasso.RequestTransformer
 import com.themechangeapp.pickimage.PermissionHelper
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.fragment_photo_registration.*
+import lecho.lib.hellocharts.model.PieChartData
+import lecho.lib.hellocharts.model.SliceValue
+import lecho.lib.hellocharts.view.PieChartView
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import timber.log.Timber
@@ -121,6 +125,8 @@ class ProtoRegistrationFragment : BaseFragment(), View.OnClickListener {
         val view = inflater.inflate(R.layout.fragment_photo_registration, container, false)
         initView(view)
 
+
+
         (mContext as DashboardActivity).setSearchListener(object : SearchListener {
             override fun onSearchQueryListener(query: String) {
                 if (query.isBlank()) {
@@ -145,6 +151,23 @@ class ProtoRegistrationFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun initView(view: View) {
+
+        //extra code
+        /*var chart:PieChartView = view.findViewById(R.id.chart)
+        val pieData: ArrayList<SliceValue> = ArrayList()
+        pieData.add(SliceValue(15f, Color.BLUE).setLabel("A"))
+        pieData.add(SliceValue(25f, Color.GRAY).setLabel("B"))
+        pieData.add(SliceValue(10f, Color.RED).setLabel("C"))
+        pieData.add(SliceValue(60f, Color.MAGENTA).setLabel("D : 60%"))
+        val pieChartData = PieChartData(pieData)
+        pieChartData.setHasLabels(true)
+        pieChartData.valueLabelTextSize = 15
+        pieChartData.setHasCenterCircle(true)
+        pieChartData.centerText1 = "Center"
+        pieChartData.slicesSpacing = 5
+        chart.setPieChartData(pieChartData);*/
+
+
         et_attachment = view.findViewById(R.id.et_attachment)
         et_photo = view.findViewById(R.id.et_photo)
         mRv_userList = view.findViewById(R.id.rv_frag_photo_reg)

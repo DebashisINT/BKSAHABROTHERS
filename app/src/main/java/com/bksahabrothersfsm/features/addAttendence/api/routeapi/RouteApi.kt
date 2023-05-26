@@ -1,9 +1,11 @@
 package com.bksahabrothersfsm.features.addAttendence.api.routeapi
 
 import com.bksahabrothersfsm.app.NetworkConstant
+import com.bksahabrothersfsm.features.addAttendence.model.AreaListResponse
 import com.bksahabrothersfsm.features.addAttendence.model.DistanceResponseModel
 import com.bksahabrothersfsm.features.addAttendence.model.LocationListResponseModel
 import com.bksahabrothersfsm.features.addAttendence.model.RouteResponseModel
+import com.bksahabrothersfsm.features.addAttendence.model.VisitLocationListResponse
 import io.reactivex.Observable
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -24,6 +26,15 @@ interface RouteApi {
     @FormUrlEncoded
     @POST("Area/AreaList")
     fun getLocationList(@Field("session_token") session_token: String, @Field("user_id") user_id: String): Observable<LocationListResponseModel>
+
+    @FormUrlEncoded
+    @POST("Area/AreaListByCity")
+    fun getAreaList(@Field("session_token") session_token: String, @Field("user_id") user_id: String, @Field("city_id") city_id: String): Observable<AreaListResponse>
+
+    @FormUrlEncoded
+    @POST("LocationAddModify/VisitLocationList")
+    fun getVisitLocationList(@Field("session_token") session_token: String): Observable<VisitLocationListResponse>
+
 
     @FormUrlEncoded
     @POST("Area/DistanceList")

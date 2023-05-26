@@ -14,18 +14,15 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.provider.MediaStore.Images.Media.getBitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
 import com.bksahabrothersfsm.R
-import com.bksahabrothersfsm.app.AppDatabase
 import com.bksahabrothersfsm.app.NetworkConstant
 import com.bksahabrothersfsm.app.Pref
 import com.bksahabrothersfsm.app.domain.AddShopDBModelEntity
@@ -36,15 +33,10 @@ import com.bksahabrothersfsm.base.BaseResponse
 import com.bksahabrothersfsm.base.presentation.BaseActivity
 import com.bksahabrothersfsm.base.presentation.BaseFragment
 import com.bksahabrothersfsm.features.addshop.api.AddShopRepositoryProvider
-import com.bksahabrothersfsm.features.addshop.model.assigntopplist.AddShopUploadImg
 import com.bksahabrothersfsm.features.addshop.model.assigntopplist.AddshopImageMultiReqbody1
 import com.bksahabrothersfsm.features.addshop.model.imageListResponse
-import com.bksahabrothersfsm.features.beatCustom.BeatGetStatusModel
-import com.bksahabrothersfsm.features.beatCustom.api.GetBeatRegProvider
 import com.bksahabrothersfsm.features.dashboard.presentation.DashboardActivity
-import com.bksahabrothersfsm.features.marketing.model.MarketingDetailImageData
 import com.bksahabrothersfsm.widgets.AppCustomTextView
-
 import com.pnikosis.materialishprogress.ProgressWheel
 import com.squareup.picasso.Cache
 import com.squareup.picasso.MemoryPolicy
@@ -435,7 +427,6 @@ class MultipleImageFragment: BaseFragment(),
         }
         pictureDialog.show()
     }
-
     fun onRequestPermission(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         permissionUtils?.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }

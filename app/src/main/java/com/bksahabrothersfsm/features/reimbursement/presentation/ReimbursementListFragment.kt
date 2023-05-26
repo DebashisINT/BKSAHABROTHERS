@@ -171,10 +171,12 @@ class ReimbursementListFragment : BaseFragment(), View.OnClickListener {
                 /*if (dy > 0 || dy < 0 && fab.isShown)
                     fab.hide()*/
 
-                if (dy < 0 && !fab.isShown)
+                if (dy < 0 && !fab.isShown) {
                     fab.show()
-                else if (dy > 0 && fab.isShown)
+                }
+                else if (dy > 0 && fab.isShown) {
                     fab.hide()
+                }
             }
 
 
@@ -260,8 +262,9 @@ class ReimbursementListFragment : BaseFragment(), View.OnClickListener {
                                 if (!TextUtils.isEmpty(reimbursementResponse.total_claim_amount))
                                     tv_claim_amount.text = reimbursementResponse.total_claim_amount
 
-                                if (reimbursementResponse.expense_list != null && reimbursementResponse.expense_list?.size!! > 0)
+                                if (reimbursementResponse.expense_list != null && reimbursementResponse.expense_list?.size!! > 0) {
                                     initExpenseAdapter(reimbursementResponse.expense_list, message)
+                                }
                                 else {
                                     //tv_no_data.visibility = View.VISIBLE
                                     tv_no_ta.visibility = View.VISIBLE
@@ -293,7 +296,8 @@ class ReimbursementListFragment : BaseFragment(), View.OnClickListener {
                             }
                             BaseActivity.isApiInitiated = false
 
-                        }, { error ->
+                        },
+                            { error ->
                             BaseActivity.isApiInitiated = false
                             error.printStackTrace()
                             progress_wheel.stopSpinning()
@@ -507,8 +511,10 @@ class ReimbursementListFragment : BaseFragment(), View.OnClickListener {
     }
 
     private fun showDeleteAlert(adapterPosition: Int, expense_list_details: ArrayList<ReimbursementListDetailsModel>?) {
-
-        CommonDialog.getInstance("Delete Alert", "Do you really want to delete this TA?", getString(R.string.cancel), getString(R.string.ok), object : CommonDialogClickListener {
+        //Begin 100.0  AppV 4.1.3 Sumaan 10/05/2023 Reimbursement bug fixing & updation mantis id -- 26075
+        //CommonDialog.getInstance("Delete Alert", "Do you really want to delete this TA?", getString(R.string.cancel), getString(R.string.ok), object : CommonDialogClickListener {
+        CommonDialog.getInstance("Delete Alert", "Do you really want to delete this document?", getString(R.string.cancel), getString(R.string.ok), object : CommonDialogClickListener {
+            //End of 100.0  AppV 4.1.3 Sumaan 10/05/2023 Reimbursement bug fixing & updation mantis id -- 26075
             override fun onLeftClick() {
             }
 
@@ -653,10 +659,12 @@ class ReimbursementListFragment : BaseFragment(), View.OnClickListener {
 
                 mPopupWindow?.dismiss()
 
-                if (conveyancePopupWindow != null && conveyancePopupWindow!!.isShowing)
+                if (conveyancePopupWindow != null && conveyancePopupWindow!!.isShowing) {
                     conveyancePopupWindow?.dismiss()
-                else
+                }
+                else {
                     showConveyenceTypePopUp()
+                }
             }
         }
     }
@@ -755,7 +763,6 @@ class ReimbursementListFragment : BaseFragment(), View.OnClickListener {
         })
 
         if (conveyancePopupWindow != null && !conveyancePopupWindow?.isShowing!!) {
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 conveyancePopupWindow?.showAsDropDown(ll_conveyence, resources.getDimensionPixelOffset(R.dimen._10sdp), 0, Gravity.BOTTOM)
             } else {

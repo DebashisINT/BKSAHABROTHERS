@@ -98,7 +98,9 @@ class AdapterOrdProductOptimized(val mContext: Context,var proList : ArrayList<P
 
             if(prooductList.get(adapterPosition).submitedQty.equals("-1")){
                 itemView.tv_row_ord_opti_product_list_qty.setText("")
-                itemView.tv_row_ord_opti_product_list_rate.setText(prooductList.get(adapterPosition).rate)
+                if(!Pref.IsViewMRPInOrder && !Pref.IsDiscountInOrder){
+                    itemView.tv_row_ord_opti_product_list_rate.setText(prooductList.get(adapterPosition).rate)
+                }
                 itemView.tv_row_ord_opti_product_list_add_text.text = "Add"
                 itemView.ll_row_ord_opti_product_list_add_text_root.background.setTint(mContext.getResources().getColor(R.color.color_custom_blue))
                 itemView.iv_row_ord_opti_product_list_add_img.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.icon_shopping))

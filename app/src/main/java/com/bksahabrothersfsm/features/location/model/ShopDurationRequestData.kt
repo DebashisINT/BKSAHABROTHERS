@@ -39,7 +39,12 @@ class ShopDurationRequestData {
     var isnewShop: Boolean? = null
     var multi_contact_name: String?= null
     var multi_contact_number: String?= null
-//    var IsShopUpdate: Boolean? = null
+    var IsShopUpdate: Boolean? = null
+    var shopid: String? = null
+
+    var distFromProfileAddrKms: String? = null
+    var stationCode: String? = null
+
 
 
 //    "visited_date": "yyyy-MM-dd",
