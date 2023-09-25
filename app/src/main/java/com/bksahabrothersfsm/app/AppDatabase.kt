@@ -65,8 +65,9 @@ import com.bksahabrothersfsm.features.taskManagement.model.TaskManagmentEntity
         NewOrderGenderEntity::class, NewOrderProductEntity::class, NewOrderColorEntity::class, NewOrderSizeEntity::class, NewOrderScrOrderEntity::class, ProspectEntity::class,
         QuestionEntity::class, QuestionSubmitEntity::class, AddShopSecondaryImgEntity::class, ReturnDetailsEntity::class, ReturnProductListEntity::class, UserWiseLeaveListEntity::class, ShopFeedbackEntity::class, ShopFeedbackTempEntity::class, LeadActivityEntity::class,
         ShopDtlsTeamEntity::class, CollDtlsTeamEntity::class, BillDtlsTeamEntity::class, OrderDtlsTeamEntity::class,
-        TeamAllShopDBModelEntity::class, DistWiseOrderTblEntity::class, NewGpsStatusEntity::class,ShopExtraContactEntity::class,ProductOnlineRateTempEntity::class, TaskManagmentEntity::class),
-        version = 2, exportSchema = false)
+        TeamAllShopDBModelEntity::class, DistWiseOrderTblEntity::class, NewGpsStatusEntity::class,ShopExtraContactEntity::class,ProductOnlineRateTempEntity::class, TaskManagmentEntity::class,
+    VisitRevisitWhatsappStatus::class),
+        version = 3, exportSchema = false)
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun addShopEntryDao(): AddShopDao
@@ -206,6 +207,7 @@ abstract class AppDatabase : RoomDatabase() {
 
 
     abstract fun taskManagementDao(): TaskManagementDao
+    abstract fun visitRevisitWhatsappStatusDao(): VisitRevisitWhatsappStatusDao
 
 
     companion object {
@@ -217,7 +219,7 @@ abstract class AppDatabase : RoomDatabase() {
                         // allow queries on the main thread.
                         // Don't do this on a real app! See PersistenceBasicSample for an example.
                         .allowMainThreadQueries()
-                        .addMigrations(MIGRATION_1_2)
+                        .addMigrations(MIGRATION_1_2,MIGRATION_2_3 )
 //                        .fallbackToDestructiveMigration()
                         .build()
             }
@@ -232,6 +234,7 @@ abstract class AppDatabase : RoomDatabase() {
             INSTANCE = null
         }
 
+
         val MIGRATION_1_2: Migration = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("alter table shop_activity ADD COLUMN distFromProfileAddrKms TEXT")
@@ -241,7 +244,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE TABLE shop_visit_revisit_whatsapp_status (sl_no INTEGER NOT NULL PRIMARY KEY, shop_id TEXT NOT NULL, shop_name TEXT NOT NULL, contactNo TEXT NOT NULL, " + "isNewShop INTEGER NOT NULL , " + "date TEXT NOT NULL, time TEXT NOT NULL,isWhatsappSent INTEGER NOT NULL ,whatsappSentMsg TEXT NOT NULL,isUploaded INTEGER NOT NULL,transactionId TEXT NOT NULL  )")
 
+                database.execSQL("alter table product_online_rate_temp_table ADD COLUMN Qty_per_Unit REAL")
+                database.execSQL("alter table product_online_rate_temp_table ADD COLUMN Scheme_Qty REAL")
+                database.execSQL("alter table product_online_rate_temp_table ADD COLUMN Effective_Rate REAL")
+
+            }
+        }
     }
 
 

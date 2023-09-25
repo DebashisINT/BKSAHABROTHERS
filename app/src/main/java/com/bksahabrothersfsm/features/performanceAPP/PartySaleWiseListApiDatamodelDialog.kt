@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bksahabrothersfsm.R
 import com.bksahabrothersfsm.features.nearbyshops.model.ShopData
-import com.bksahabrothersfsm.features.photoReg.adapter.AdapterUserTestList
+import com.bksahabrothersfsm.features.performanceAPP.model.AdapterUserTestList
 import com.bksahabrothersfsm.widgets.AppCustomEditText
 import com.bksahabrothersfsm.widgets.AppCustomTextView
 

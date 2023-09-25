@@ -46,8 +46,8 @@
 
                 <ImageView
                     android:id="@+id/logo_new"
-                    android:layout_width="@dimen/_135sdp"
-                    android:layout_height="@dimen/_78sdp"
+                    android:layout_width="@dimen/_145sdp"
+                    android:layout_height="@dimen/_68sdp"
                     android:src="@drawable/breezelogo"
                     android:layout_marginTop="@dimen/_30sdp"
                     android:layout_centerHorizontal="true"
@@ -144,6 +144,8 @@
                                                     android:background="@color/transparent"
                                                     android:inputType="textEmailAddress"
                                                     android:singleLine="true"
+                                                    android:focusable="true"
+                                                    android:cursorVisible="true"
                                                     android:paddingStart="@dimen/_10sdp"
                                                     android:textSize="@dimen/_13sdp"
                                                     app:theme="@style/EvoEditTextTheme" />
@@ -197,7 +199,8 @@
                                                     android:paddingStart="@dimen/_10sdp"
                                                     android:singleLine="true"
                                                     android:textSize="@dimen/_13sdp"
-                                                    app:theme="@style/EvoEditTextTheme" />
+                                                    app:theme="@style/EvoEditTextTheme"
+                                                    android:textCursorDrawable="@drawable/custom_cursor"/>
 
                                             </com.google.android.material.textfield.TextInputLayout>
 
